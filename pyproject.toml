@@ -28,6 +28,7 @@ finarkae = "finarkae.main:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["finarkae"]
+include = ["VERSION"]
 
 [tool.uv]
 dev-dependencies = [
