@@ -1,6 +1,7 @@
 # finarkae-cli
 
-CLI tools for finarkae - A collection of tools for financial data processing. Made by ZYME with great 💚.
+CLI tools for finarkae - A collection of tools for financial data processing.
+Made by ZYME with great 💚.
 
 ---
 
