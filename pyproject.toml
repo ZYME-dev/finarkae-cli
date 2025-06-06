@@ -6,6 +6,8 @@ build-backend = "hatchling.build"
 name = "finarkae-cli"
 version = "v0.1.1"
 description = "CLI tools for finarkae"
+authors = [{ name = "Lionel du Peloux (ZYME)", email = "lionel.dupeloux@zyme.fr" }]
+
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -22,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-finarkae = "finarkae.main:app"
+finarkae = "finarkae.__main__:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["finarkae"]
