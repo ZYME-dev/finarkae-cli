@@ -27,39 +27,48 @@ PYPROJECTS=$(shell find . -name pyproject.toml)
 ## Count commits since latest tag and update VERSION
 bump-patch:
 	@git fetch --tags
-	@latest_tag=$$(git describe --tags --abbrev=0); \
-	patch_count=$$(git rev-list $$latest_tag..HEAD --count); \
-	new_version=$${latest_tag}.$$patch_count; \
+	@latest_tag=$$(git describe --tags --abbrev=0 | sed 's/^v//'); \
+	if [ -z "$$latest_tag" ]; then latest_tag=0.0.0; fi; \
+	IFS='.' read -r major minor patch <<< "$$latest_tag"; \
+	patch=$$((patch + 1)); \
+	new_version="$$major.$$minor.$$patch"; \
 	echo $$new_version > $(VERSION_FILE); \
 	echo "Bumped patch to $$new_version"; \
 	make update-version
 
 ## Bump minor version tag (e.g. from 0.2 to 0.3)
 bump-minor:
-	@latest_tag=$$(git describe --tags --abbrev=0); \
-	new_minor=$$(echo $$latest_tag | awk -F. '{$$2 += 1; $$3=0; print $$1"."$$2}' ); \
-	git tag $$new_minor; \
-	echo "$$new_minor.0" > $(VERSION_FILE); \
-	echo "Created minor tag $$new_minor"; \
+	@latest_tag=$$(git describe --tags --abbrev=0 | sed 's/^v//'); \
+	if [ -z "$$latest_tag" ]; then latest_tag=0.0.0; fi; \
+	IFS='.' read -r major minor patch <<< "$$latest_tag"; \
+	minor=$$((minor + 1)); patch=0; \
+	new_version="$$major.$$minor.$$patch"; \
+	git tag v$$new_version; \
+	echo "$$new_version" > $(VERSION_FILE); \
+	echo "Created minor tag v$$new_version"; \
 	make update-version
 
 ## Same for major
 bump-major:
-	@latest_tag=$$(git describe --tags --abbrev=0); \
-	new_major=$$(echo $$latest_tag | awk -F. '{$$1 += 1; $$2=0; $$3=0; print $$1"."$$2}' ); \
-	git tag $$new_major; \
-	echo "$$new_major.0" > $(VERSION_FILE); \
-	echo "Created major tag $$new_major"; \
+	@latest_tag=$$(git describe --tags --abbrev=0 | sed 's/^v//'); \
+	if [ -z "$$latest_tag" ]; then latest_tag=0.0.0; fi; \
+	IFS='.' read -r major minor patch <<< "$$latest_tag"; \
+	major=$$((major + 1)); minor=0; patch=0; \
+	new_version="$$major.$$minor.$$patch"; \
+	git tag v$$new_version; \
+	echo "$$new_version" > $(VERSION_FILE); \
+	echo "Created major tag v$$new_version"; \
 	make update-version
 
 ## Write version into all pyproject.toml
 update-version:
 	@ver=$$(cat $(VERSION_FILE)); \
+	vver=v$$ver; \
 	for file in $(PYPROJECTS); do \
-		sed -i.bak -E "s/(^version *= *\")[0-9]+\.[0-9]+\.[0-9]+(\")/\1$$ver\2/" $$file; \
+		sed -i.bak -E 's/(^version *= *\")[^\"]+(\")/\1'"$$vver"'\2/' $$file; \
 		rm -f $$file.bak; \
 	done; \
-	echo "Updated all pyproject.toml to version $$ver"
+	echo "Updated all pyproject.toml to version $$vver"
 
 
 # Run unit tests
