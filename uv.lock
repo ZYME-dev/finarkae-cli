@@ -94,7 +94,7 @@ wheels = [
 
 [[package]]
 name = "finarkae-cli"
-version = "0.1.19"
+version = "0.1.23"
 source = { editable = "." }
 dependencies = [
     { name = "chardet" },

@@ -1,4 +1,4 @@
-.PHONY: test test-verbose clean install dev lint format help bump bump-minor bump-major
+.PHONY: test test-verbose clean install dev lint format help bump bump-minor bump-major sync-version
 
 # Default target
 help:
@@ -15,6 +15,7 @@ help:
 	@echo "  bump         - Bump version"
 	@echo "  bump-minor   - Bump minor version"
 	@echo "  bump-major   - Bump major version"
+	@echo "  sync-version - Sync version from VERSION file to other files"
 
 # Run unit tests
 test:
@@ -46,6 +47,12 @@ lint:
 format:
 	uv run ruff format finarkae/ tests/
 
+# Sync version from VERSION file to pyproject.toml (for manual use, _version.py reads automatically)
+sync-version:
+	@version=$$(cat VERSION); \
+	sed -i.bak "s/version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$$version\"/" pyproject.toml && rm pyproject.toml.bak; \
+	echo "Synced version $$version to pyproject.toml"
+
 # Clean up build artifacts
 clean:
 	rm -rf build/
@@ -68,6 +75,3 @@ bump-minor:
 bump-major:
 	uv run python scripts/bump_version.py major
 
-# Format code using ruff
-format:
-	uv run ruff format finarkae/ tests/ 
