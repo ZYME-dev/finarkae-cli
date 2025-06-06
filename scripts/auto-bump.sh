@@ -33,8 +33,17 @@ find . -name pyproject.toml -not -path "./.venv/*" | while read -r file; do
 done
 echo "Updated all pyproject.toml to version $vver"
 
+# Sync dependencies to update uv.lock with the new version
+echo "Syncing dependencies..."
+uv sync --quiet
+
 # Stage the modified files so they are included in the commit
 git add VERSION
 find . -name pyproject.toml -not -path "./.venv/*" | xargs git add
+# Also stage uv.lock if it was updated
+if [ -f "uv.lock" ]; then
+    git add uv.lock
+    echo "Staged uv.lock"
+fi
 
 exit 0 

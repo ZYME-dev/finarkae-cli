@@ -58,7 +58,7 @@ finarkae --help
 finarkae proxity --help
 
 # Show version
-finarkae --version
+finarkae -v
 ```
 
 #### Proxity Module
@@ -269,3 +269,4 @@ finarkae-cli/
 This project is licensed under the MIT License.
 # Test commit
 # Test final auto-bump
+# Test uv.lock auto-bump fix
