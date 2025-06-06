@@ -50,7 +50,7 @@ format:
 # Sync version from VERSION file to pyproject.toml (for manual use, _version.py reads automatically)
 sync-version:
 	@version=$$(cat VERSION); \
-	sed -i.bak "s/version = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/version = \"$$version\"/" pyproject.toml && rm pyproject.toml.bak; \
+	sed -i.bak "s/version = \"[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\"/version = \"$$version\"/" pyproject.toml && rm pyproject.toml.bak; \
 	echo "Synced version $$version to pyproject.toml"
 
 # Clean up build artifacts

@@ -11,7 +11,7 @@ VERSION_FILE = Path("VERSION")
 # Check for staged changes (excluding version files)
 def has_staged_changes():
     result = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True)
-    files = [f for f in result.stdout.splitlines() if f not in ("VERSION",)]
+    files = [f for f in result.stdout.splitlines() if f not in ("VERSION", "pyproject.toml")]
     return bool(files)
 
 
