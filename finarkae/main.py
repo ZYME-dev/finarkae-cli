@@ -4,6 +4,7 @@ import typer
 from rich.console import Console
 
 from .proxity.cli import app as proxity_app
+from .update import update
 
 console = Console()
 
@@ -13,6 +14,7 @@ app = typer.Typer(
     add_completion=False,
 )
 app.add_typer(proxity_app, name="proxity")
+app.command()(update)
 
 
 def version_callback(value: bool):

@@ -48,7 +48,15 @@ This will make the `finarkae` command globally available in your terminal.
 
 ### Updating
 
-To update to the latest version:
+#### Update
+
+To update to the latest version automatically:
+
+```bash
+finarkae update
+```
+
+Alternatively you can manually update with:
 
 ```bash
 uv tool install git+https://github.com/zyme-dev/finarkae-cli.git --force
@@ -69,6 +77,9 @@ finarkae proxity --help
 
 # Show version
 finarkae -v
+
+# Update to latest version
+finarkae update
 
 # List available tools 
 uv tool list
@@ -117,6 +128,44 @@ Summary:
   • Excel files: 2
   • Total files: 3
   • Total rows: 355
+```
+
+#### Update Command
+
+Keep your finarkae CLI up-to-date with the built-in update command.
+
+**Features:**
+* Automatic version checking against GitHub repository
+* Safe update process with confirmation prompt
+* Clear before/after version reporting
+* Handles network errors gracefully
+* Uses the same installation method (`uv tool install`)
+
+**Usage:**
+```bash
+# Check for updates and update if available
+finarkae update
+```
+
+**Example output when update is available:**
+```
+🔍 Checking for updates...
+Current version: 0.1.10
+Latest version:  0.1.11
+📦 New version available: 0.1.10 → 0.1.11
+Would you like to update now? [y/N]: y
+Updating finarkae CLI...
+✅ Update completed successfully!
+🎉 Successfully updated from 0.1.10 to 0.1.11!
+You may need to restart your terminal or run 'hash -r' to refresh the command cache.
+```
+
+**Example output when already up-to-date:**
+```
+🔍 Checking for updates...
+Current version: 0.1.11
+Latest version:  0.1.11
+✅ You are already running the latest version!
 ```
 
 ### Uninstalling
