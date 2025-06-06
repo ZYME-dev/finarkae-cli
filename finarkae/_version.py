@@ -9,7 +9,7 @@ def get_version() -> str:
     if version_file.exists():
         return version_file.read_text().strip()
     # Fallback to hardcoded version if VERSION file doesn't exist
-    return "0.1.21"
+    raise RuntimeError("VERSION file not found")
 
 
 __version__ = get_version()
