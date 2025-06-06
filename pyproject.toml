@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-finarkae = "finarkae.__main__:main"
+finarkae = "finarkae.main:app"
 
 [tool.hatch.build.targets.wheel]
 packages = ["finarkae"]
