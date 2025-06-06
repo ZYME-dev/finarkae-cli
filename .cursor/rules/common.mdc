@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Use the `tmp/cursor/` folder when you need to write temp files for your dev process.
+Use `make test` to run the tests. Always run the tests when you develop.
+Use `make sample-test` to run the command on a sample.
