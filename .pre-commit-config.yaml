@@ -28,9 +28,8 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: bump-version
-        name: Bump version (patch, semver)
-        entry: make
-        args: [bump]
+      - id: auto-bump-patch
+        name: Auto bump patch
+        entry: make bump-patch
         language: system
         pass_filenames: false

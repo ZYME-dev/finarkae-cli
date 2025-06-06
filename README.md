@@ -141,3 +141,4 @@ make clean         # Clean build artifacts
 
 This project is licensed under the MIT License.
 # Testing the new VERSION file approach
+# Testing fixed version bump logic
