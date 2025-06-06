@@ -8,11 +8,6 @@ CLI tools for finarkae, installable from the repo through uvx.
 
 First, you need to install `uv` (the Python package manager). Choose your preferred method:
 
-**Via pip:**
-```bash
-pip install uv
-```
-
 **Via Homebrew (macOS):**
 ```bash
 brew install uv
@@ -145,3 +140,4 @@ make clean         # Clean build artifacts
 ## License
 
 This project is licensed under the MIT License.
+# Testing the new VERSION file approach
