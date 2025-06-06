@@ -52,6 +52,15 @@ class Operation(BaseModel):
             return match.group(1)
         return None
 
+    @computed_field
+    @property
+    def code_territoire(self) -> str | None:
+        """Extract territory code ."""
+        # Use regex to find letters between dashes
+        if "-" in self.reference:
+            return self.reference.split("-")[0]
+        return None
+
 
 class Remise(BaseModel):
     file_info: FileInfo
@@ -356,11 +365,8 @@ def extract_ref_from_metadata(metadata: dict[str, str]) -> tuple:
     else:
         ref_full = ref_line
 
-    # Extract just the main reference (before the dash)
-    if "-" in ref_full:
-        ref = ref_full.split("-")[0].strip()
-    else:
-        ref = ref_full.strip()
+    # Return the full reference (don't trim after the dash)
+    ref = ref_full.strip()
 
     return ref, libelle
 
@@ -611,19 +617,19 @@ def export_remises_to_excel(
     for remise in remises:
         for i, operation in enumerate(remise.operations):
             export_row = {
-                "File Name": strip_filename_prefix(remise.file_info.name),
-                "File Format": (remise.file_info.file_format.value if remise.file_info.file_format else "Unknown"),
-                "Date Export": remise.date_export.strftime("%d/%m/%Y"),
-                "Date Échéance": remise.date_echeance.strftime("%d/%m/%Y"),
-                "Référence Remise": remise.ref,
-                "Libellé": remise.libelle,
-                "Compte Remise": str(remise.compte),
-                "Type Remise": remise.type,
-                "Statut Remise": remise.statut,
-                "Montant Total": remise.montant_total,
+                "Rem File": strip_filename_prefix(remise.file_info.name),
+                "Rem Format": (remise.file_info.file_format.value if remise.file_info.file_format else "Unknown"),
+                "Rem Export": remise.date_export.strftime("%d/%m/%Y"),
+                "Rem Échéance": remise.date_echeance.strftime("%d/%m/%Y"),
+                "Rem Référence": remise.ref,
+                "Rem Libellé": remise.libelle,
+                "Rem Type": remise.type,
+                "Rem Statut": remise.statut,
+                "Rem Montant Total": remise.montant_total,
                 "Op #": i + 1,
                 "Op Débiteur": operation.debiteur,
                 "Op Référence": operation.reference,
+                "Op Territoire": operation.code_territoire or "",
                 "Op Code": operation.code or "",
                 "Op Compte": str(operation.compte),
                 "Op Montant": operation.montant,
@@ -653,9 +659,9 @@ def export_remises_to_excel(
     int_fmt = workbook.add_format({"num_format": "0"})
 
     for col_idx, col_name in enumerate(columns):
-        if col_name in ["Montant Total", "Op Montant"]:
+        if col_name in ["Rem Montant Total", "Op Montant"]:
             worksheet.set_column(col_idx, col_idx, 15, money_fmt)
-        elif col_name in ["Date Export", "Date Échéance"]:
+        elif col_name in ["Rem Export", "Rem Échéance"]:
             worksheet.set_column(col_idx, col_idx, 12, date_fmt)
         elif col_name == "Op #":
             worksheet.set_column(col_idx, col_idx, 6, int_fmt)
@@ -671,11 +677,11 @@ def export_remises_to_excel(
     # Build columns for table
     table_columns = []
     for col_name in columns:
-        if col_name == "File Name":
+        if col_name == "Rem File":
             table_columns.append({"header": col_name, "total_string": "Total"})
-        elif col_name == "File Format":
+        elif col_name == "Rem Format":
             table_columns.append({"header": col_name, "total_function": "count"})
-        elif col_name in ["Montant Total", "Op Montant"]:
+        elif col_name in ["Rem Montant Total", "Op Montant"]:
             table_columns.append({"header": col_name, "total_function": "sum"})
         else:
             table_columns.append({"header": col_name})

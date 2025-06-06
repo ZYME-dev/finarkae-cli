@@ -370,19 +370,19 @@ Bijouterie L'Or en Scene Centre-Ville;0022-39828770600038-ABO-0525-15722;FR76 30
         # Test with full REF line including libelle
         metadata_full = {"REF": "FR59ZZZ86395E-412545;LIBELLE : PRINC. *5264*"}
         ref, libelle = extract_ref_from_metadata(metadata_full)
-        assert ref == "FR59ZZZ86395E"
+        assert ref == "FR59ZZZ86395E-412545"
         assert libelle == "PRINC. *5264*"
 
         # Test with REF only (no libelle)
         metadata_ref_only = {"REF": "FR59ZZZ86395E-412545"}
         ref_only, libelle_only = extract_ref_from_metadata(metadata_ref_only)
-        assert ref_only == "FR59ZZZ86395E"
+        assert ref_only == "FR59ZZZ86395E-412545"
         assert libelle_only == ""
 
         # Test with different libelle format
         metadata_alt = {"REF": "FR59ZZZ86395E-412546;LIBELLE : PASS *0308*"}
         ref_alt, libelle_alt = extract_ref_from_metadata(metadata_alt)
-        assert ref_alt == "FR59ZZZ86395E"
+        assert ref_alt == "FR59ZZZ86395E-412546"
         assert libelle_alt == "PASS *0308*"
 
         # Test missing REF
@@ -509,7 +509,7 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
 
         assert remise is not None
         assert remise.file_info.file_format == FileFormat.PRELEVEMENTS
-        assert remise.ref == "FR59ZZZ86395E"
+        assert remise.ref == "FR59ZZZ86395E-412556"
         assert remise.libelle == "PRINC. *5264*"
         assert remise.montant_total == 285.30
         assert remise.nb_operations == 2  # Updated to match our test data
@@ -533,7 +533,7 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
 
         assert remise is not None
         assert remise.file_info.file_format == FileFormat.VIREMENTS
-        assert remise.ref == "FR59ZZZ86395E"
+        assert remise.ref == "FR59ZZZ86395E-412546"
         assert remise.libelle == "PASS *0308*"
         assert remise.montant_total == 1272.83
         assert remise.nb_operations == 2  # Updated to match our test data
@@ -656,43 +656,43 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
 
         # Simulate the actual export data structure used in compile_remise_flux_pass_operations
         export_row = {
-            # File Information (updated structure - removed File Size)
-            "File Name": strip_filename_prefix(remise.file_info.name),
-            "File Format": (remise.file_info.file_format.value if remise.file_info.file_format else "Unknown"),
-            # Remise Information (updated structure)
-            "Date Export": remise.date_export.strftime("%d/%m/%Y"),
-            "Date Échéance": remise.date_echeance.strftime("%d/%m/%Y"),
-            "Référence Remise": remise.ref,
-            "Libellé": remise.libelle,
-            "Compte Remise": str(remise.compte),
-            "Type Remise": remise.type,
-            "Statut Remise": remise.statut,
-            "Montant Total": remise.montant_total,
-            # Operation Information (updated structure)
+            # File Information (updated structure with Rem prefix)
+            "Rem File": strip_filename_prefix(remise.file_info.name),
+            "Rem Format": (remise.file_info.file_format.value if remise.file_info.file_format else "Unknown"),
+            # Remise Information (updated structure with Rem prefix)
+            "Rem Export": remise.date_export.strftime("%d/%m/%Y"),
+            "Rem Échéance": remise.date_echeance.strftime("%d/%m/%Y"),
+            "Rem Référence": remise.ref,
+            "Rem Libellé": remise.libelle,
+            "Rem Type": remise.type,
+            "Rem Statut": remise.statut,
+            "Rem Montant Total": remise.montant_total,
+            # Operation Information (updated structure with Op prefix)
             "Op #": 1,
             "Op Débiteur": remise.operations[0].debiteur,
             "Op Référence": remise.operations[0].reference,
+            "Op Territoire": remise.operations[0].code_territoire or "",
             "Op Code": remise.operations[0].code or "",
             "Op Compte": str(remise.operations[0].compte),
             "Op Montant": remise.operations[0].montant,
             "Op Statut": remise.operations[0].statut,
         }
 
-        # Verify the structure has the correct keys (updated for removed File Size column)
+        # Verify the structure has the correct keys (updated with Rem/Op prefixes)
         expected_keys = [
-            "File Name",
-            "File Format",
-            "Date Export",
-            "Date Échéance",
-            "Référence Remise",
-            "Libellé",
-            "Compte Remise",
-            "Type Remise",
-            "Statut Remise",
-            "Montant Total",
+            "Rem File",
+            "Rem Format",
+            "Rem Export",
+            "Rem Échéance",
+            "Rem Référence",
+            "Rem Libellé",
+            "Rem Type",
+            "Rem Statut",
+            "Rem Montant Total",
             "Op #",
             "Op Débiteur",
             "Op Référence",
+            "Op Territoire",
             "Op Code",
             "Op Compte",
             "Op Montant",

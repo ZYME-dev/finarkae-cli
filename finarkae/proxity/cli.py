@@ -69,14 +69,15 @@ def compile_remise_flux_pass_ops(
 
     # Create and display operations table with grouped filenames
     table = Table(title=f"Operations from {len(remises)} Remises in {search_dir}")
-    table.add_column("File Name", style="cyan", no_wrap=True)
-    table.add_column("Export", style="blue")
-    table.add_column("Échéance", style="green")
-    table.add_column("Montant Total", style="yellow")
-    table.add_column("Nb Ops", style="bright_blue")
+    table.add_column("Rem File", style="cyan", no_wrap=False)
+    table.add_column("Rem Export", style="blue")
+    table.add_column("Rem Échéance", style="green")
+    table.add_column("Rem Montant Total", style="yellow")
+    table.add_column("Rem Nb Ops", style="bright_blue")
     table.add_column("Op #", style="blue")
-    table.add_column("Débiteur", style="magenta")
+    table.add_column("Op Débiteur", style="magenta")
     table.add_column("Op Réf", style="dim")
+    table.add_column("Op Territoire", style="green")
     table.add_column("Op Code", style="cyan")
     table.add_column("Op Montant", style="yellow")
     table.add_column("Op Statut", style="red")
@@ -116,6 +117,7 @@ def compile_remise_flux_pass_ops(
                 str(i + 1),
                 operation.debiteur,
                 operation.reference,
+                operation.code_territoire or "",
                 operation.code or "",
                 f"{operation.montant:.2f}",
                 status_display,

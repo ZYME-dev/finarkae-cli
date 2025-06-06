@@ -5,6 +5,7 @@ Made by ZYME with great 💚.
 
 ---
 
+
 ## 👤 For Users
 
 ### Prerequisites
@@ -45,6 +46,14 @@ uv tool install git+https://github.com/zyme-dev/finarkae-cli.git
 
 This will make the `finarkae` command globally available in your terminal.
 
+### Updating
+
+To update to the latest version:
+
+```bash
+uv tool install git+https://github.com/zyme-dev/finarkae-cli.git --force
+```
+
 ### Usage
 
 The CLI is organized into modules. Currently available:
@@ -60,6 +69,9 @@ finarkae proxity --help
 
 # Show version
 finarkae -v
+
+# List available tools 
+uv tool list
 ```
 
 #### Proxity Module
@@ -105,14 +117,6 @@ Summary:
   • Excel files: 2
   • Total files: 3
   • Total rows: 355
-```
-
-### Updating
-
-To update to the latest version:
-
-```bash
-uv tool install git+https://github.com/zyme-dev/finarkae-cli.git --force
 ```
 
 ### Uninstalling
