@@ -3,13 +3,15 @@
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
 from schwifty import IBAN
 from typer.testing import CliRunner
 
+from finarkae.proxity import console
+from finarkae.proxity.cli import compile_remise_flux_pass_ops
 from finarkae.proxity.compile_remise_flux_pass_ops import (
     FileFormat,
     FileInfo,
@@ -26,8 +28,6 @@ from finarkae.proxity.compile_remise_flux_pass_ops import (
     parse_remise_csv_with_format,
     strip_filename_prefix,
 )
-from finarkae.proxity.cli import compile_remise_flux_pass_ops
-from finarkae.proxity import console
 
 runner = CliRunner()
 
@@ -49,11 +49,7 @@ class TestDetectEncoding:
         test_file = tmp_path / "test_french.csv"
         # Write with ISO-8859-1 encoding (common for French files)
         # Use a simpler test string without euro symbol
-        test_file.write_bytes(
-            "Nom,Prénom,Montant\nJean,François,100\nMarie,Hélène,200".encode(
-                "iso-8859-1"
-            )
-        )
+        test_file.write_bytes("Nom,Prénom,Montant\nJean,François,100\nMarie,Hélène,200".encode("iso-8859-1"))
 
         encoding = detect_encoding(test_file)
         assert encoding is not None
@@ -80,9 +76,7 @@ class TestLoadCSVFile:
     def test_load_semicolon_csv(self, tmp_path):
         """Test loading a CSV file with semicolon delimiter (common in French files)."""
         test_file = tmp_path / "semicolon.csv"
-        test_file.write_text(
-            "Nom;Âge;Ville\nJean;25;Paris\nMarie;30;Lyon", encoding="utf-8"
-        )
+        test_file.write_text("Nom;Âge;Ville\nJean;25;Paris\nMarie;30;Lyon", encoding="utf-8")
 
         df = load_csv_file(test_file)
         assert df is not None
@@ -107,7 +101,7 @@ class TestLoadCSVFile:
         test_file = tmp_path / "invalid.csv"
         test_file.write_bytes(b"\x00\x01\x02\x03")  # Invalid content
 
-        df = load_csv_file(test_file)
+        _ = load_csv_file(test_file)
         # Should handle gracefully and possibly return None or empty DataFrame
 
 
@@ -119,9 +113,7 @@ class TestLoadExcelFile:
         test_file = tmp_path / "test.xlsx"
 
         # Create a simple Excel file
-        df_original = pd.DataFrame(
-            {"Name": ["Jean", "Marie"], "Age": [25, 30], "City": ["Paris", "Lyon"]}
-        )
+        df_original = pd.DataFrame({"Name": ["Jean", "Marie"], "Age": [25, 30], "City": ["Paris", "Lyon"]})
         df_original.to_excel(test_file, index=False, engine="openpyxl")
 
         df_loaded = load_excel_file(test_file)
@@ -192,9 +184,7 @@ Viet To Wok;0022-83858785500019-ABO-0525-15719;FR76 3000 3014 5000 0270 3328 526
 Bijouterie L'Or en Scene Centre-Ville;0022-39828770600038-ABO-0525-15722;FR76 3000 4003 3600 0101 1190 332;15,3;EUR;Accepté;
 """
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False, encoding="windows-1252"
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="windows-1252") as f:
             f.write(content)
             return Path(f.name)
 
@@ -218,9 +208,7 @@ La Vie Claire;0021-82482310800017-DEC-0525-15595;FR76 1680 7000 0636 5823 6121 8
 La Boucherie Gourmande;0021-88060975500017-DEC-0525-15596;FR76 1680 7000 0836 5998 4921 643;10,53;EUR;Accepté;
 """
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False, encoding="windows-1252"
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="windows-1252") as f:
             f.write(content)
             return Path(f.name)
 
@@ -243,9 +231,7 @@ Viet To Wok;0022-83858785500019-ABO-0525-15719;FR76 3000 3014 5000 0270 3328 526
 Bijouterie L'Or en Scene Centre-Ville;0022-39828770600038-ABO-0525-15722;FR76 3000 4003 3600 0101 1190 332;15,3;EUR;Accepté;
 """
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False, encoding="windows-1252"
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="windows-1252") as f:
             f.write(content)
             return Path(f.name)
 
@@ -253,17 +239,12 @@ Bijouterie L'Or en Scene Centre-Ville;0022-39828770600038-ABO-0525-15722;FR76 30
         """Test filename prefix stripping."""
         # Test with LISTE_OPERATIONS prefix
         assert (
-            strip_filename_prefix(
-                "LISTE_OPERATIONS_ZZ1I9Q31AINNFIGS8_20250506_1442.csv"
-            )
+            strip_filename_prefix("LISTE_OPERATIONS_ZZ1I9Q31AINNFIGS8_20250506_1442.csv")
             == "ZZ1I9Q31AINNFIGS8_20250506_1442.csv"
         )
 
         # Test without prefix
-        assert (
-            strip_filename_prefix("ZZ1I9Q31AINNFIGS8_20250506_1442.csv")
-            == "ZZ1I9Q31AINNFIGS8_20250506_1442.csv"
-        )
+        assert strip_filename_prefix("ZZ1I9Q31AINNFIGS8_20250506_1442.csv") == "ZZ1I9Q31AINNFIGS8_20250506_1442.csv"
 
         # Test with empty string
         assert strip_filename_prefix("") == ""
@@ -316,19 +297,13 @@ Bijouterie L'Or en Scene Centre-Ville;0022-39828770600038-ABO-0525-15722;FR76 30
         assert date_vir == datetime(2025, 5, 7)
 
         # Test that the function handles variations without exact string matching
-        metadata_variation = {
-            "some field about echeance le with extra text": "07/05/2025"
-        }
-        date_variation = extract_date_from_metadata(
-            metadata_variation, FileFormat.PRELEVEMENTS
-        )
+        metadata_variation = {"some field about echeance le with extra text": "07/05/2025"}
+        date_variation = extract_date_from_metadata(metadata_variation, FileFormat.PRELEVEMENTS)
         assert date_variation == datetime(2025, 5, 7)
 
         # Test with encoded characters (still needed for fallback)
         metadata_encoded = {"Echéance le": "07/05/2025"}
-        date_encoded = extract_date_from_metadata(
-            metadata_encoded, FileFormat.PRELEVEMENTS
-        )
+        date_encoded = extract_date_from_metadata(metadata_encoded, FileFormat.PRELEVEMENTS)
         assert date_encoded == datetime(2025, 5, 7)
 
         # Test missing date
@@ -340,37 +315,27 @@ Bijouterie L'Or en Scene Centre-Ville;0022-39828770600038-ABO-0525-15722;FR76 30
         """Test operation count extraction using position-based approach."""
         # Test prélèvements format - function should find any key containing "nombre" and "prelevement"
         metadata_prel = {"Nombre de prélèvement(s)": "11"}
-        count_prel = extract_operation_count_from_metadata(
-            metadata_prel, FileFormat.PRELEVEMENTS
-        )
+        count_prel = extract_operation_count_from_metadata(metadata_prel, FileFormat.PRELEVEMENTS)
         assert count_prel == 11
 
         # Test virements format - function should find any key containing "nombre" and "virement"
         metadata_vir = {"Nombre de virement(s)": "8"}
-        count_vir = extract_operation_count_from_metadata(
-            metadata_vir, FileFormat.VIREMENTS
-        )
+        count_vir = extract_operation_count_from_metadata(metadata_vir, FileFormat.VIREMENTS)
         assert count_vir == 8
 
         # Test variations without exact matching
         metadata_variation = {"field with nombre de prelevement info": "5"}
-        count_variation = extract_operation_count_from_metadata(
-            metadata_variation, FileFormat.PRELEVEMENTS
-        )
+        count_variation = extract_operation_count_from_metadata(metadata_variation, FileFormat.PRELEVEMENTS)
         assert count_variation == 5
 
         # Test with actual encoded characters from the test cases (still needed for fallback)
         metadata_encoded = {"Nombre de prélèvement(s)": "3"}
-        count_encoded = extract_operation_count_from_metadata(
-            metadata_encoded, FileFormat.PRELEVEMENTS
-        )
+        count_encoded = extract_operation_count_from_metadata(metadata_encoded, FileFormat.PRELEVEMENTS)
         assert count_encoded == 3
 
         # Test missing count
         metadata_empty = {}
-        count_empty = extract_operation_count_from_metadata(
-            metadata_empty, FileFormat.PRELEVEMENTS
-        )
+        count_empty = extract_operation_count_from_metadata(metadata_empty, FileFormat.PRELEVEMENTS)
         assert count_empty == 0
 
     def test_extract_export_date_from_metadata(self):
@@ -444,9 +409,7 @@ Débiteur;Référence;Compte ;Montant;Devise;Statut
 Test Company;0021-12345678900017-ABO-0525-15582;FR76 1810 6008 1096 7472 3536 593;42,30;EUR;Accepté;
 """
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False, encoding="windows-1252"
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="windows-1252") as f:
             f.write(content)
             f.flush()
 
@@ -489,9 +452,7 @@ Bénéficiaire;Référence du paiement;Compte;Montant;Devise;Statut
 Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 6121 865;100,00;EUR;Accepté;
 """
 
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False, encoding="windows-1252"
-        ) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False, encoding="windows-1252") as f:
             f.write(content_virements)
             f.flush()
 
@@ -606,7 +567,7 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
     def test_operation_count_validation(self, sample_mismatched_count_csv):
         """Test that operation count validation warns about mismatched counts."""
         # Mock console.print to capture output
-        with patch.object(console, "print") as mock_print:
+        with patch.object(console, "print"):
             remise = parse_remise_csv(sample_mismatched_count_csv)
 
             assert remise is not None
@@ -648,12 +609,8 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
             temp_path = Path(temp_dir)
 
             # Copy test files to temp directory with proper names
-            prel_dest = (
-                temp_path / "LISTE_OPERATIONS_ZZ1I9Q31AINNFIGS8_20250506_1442.csv"
-            )
-            vir_dest = (
-                temp_path / "LISTE_OPERATIONS_ZZ1I9P4RT27P6GJY0_20250506_1440.csv"
-            )
+            prel_dest = temp_path / "LISTE_OPERATIONS_ZZ1I9Q31AINNFIGS8_20250506_1442.csv"
+            vir_dest = temp_path / "LISTE_OPERATIONS_ZZ1I9P4RT27P6GJY0_20250506_1440.csv"
 
             shutil.copy2(sample_prelevements_csv, prel_dest)
             shutil.copy2(sample_virements_csv, vir_dest)
@@ -678,16 +635,14 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
             with patch.object(pd.DataFrame, "to_excel", mock_to_excel):
                 try:
                     # Call the function directly with the test directory
-                    result = compile_remise_flux_pass_ops(str(temp_directory_with_files), False)
+                    _ = compile_remise_flux_pass_ops(str(temp_directory_with_files), False)
 
                     # Check that output was generated
                     assert len(output_lines) > 0
 
                     # Look for expected output patterns
                     output_text = "\n".join(output_lines)
-                    assert (
-                        "Detected format" in output_text or "Processing:" in output_text
-                    )
+                    assert "Detected format" in output_text or "Processing:" in output_text
 
                 except Exception as e:
                     # If there are import issues with rich/typer in test environment,
@@ -703,9 +658,7 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
         export_row = {
             # File Information (updated structure - removed File Size)
             "File Name": strip_filename_prefix(remise.file_info.name),
-            "File Format": remise.file_info.file_format.value
-            if remise.file_info.file_format
-            else "Unknown",
+            "File Format": (remise.file_info.file_format.value if remise.file_info.file_format else "Unknown"),
             # Remise Information (updated structure)
             "Date Export": remise.date_export.strftime("%d/%m/%Y"),
             "Date Échéance": remise.date_echeance.strftime("%d/%m/%Y"),
@@ -769,8 +722,6 @@ Test Beneficiary;0021-98765432100017-DEC-0525-15595;FR76 1680 7000 0636 5823 612
 
     def test_operation_code_extraction_regex(self):
         """Test operation code extraction using regex to find letters between dashes."""
-        from schwifty import IBAN
-
         from finarkae.proxity.compile_remise_flux_pass_ops import Operation
 
         # Test cases for different reference patterns

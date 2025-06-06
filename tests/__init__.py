@@ -1,1 +1,1 @@
-"""Tests package for finarkae-cli.""" 
+"""Tests package for finarkae-cli."""

@@ -2,7 +2,6 @@ import re
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import chardet
 import pandas as pd
@@ -29,10 +28,10 @@ class FileInfo(BaseModel):
     path: str
     size: str
     extension: str
-    encoding: Optional[str] = None
+    encoding: str | None = None
     sheet_name: str
-    raw_data: Optional[List[str]] = None  # Store raw file content
-    file_format: Optional[FileFormat] = None  # Move file_format here
+    raw_data: list[str] | None = None  # Store raw file content
+    file_format: FileFormat | None = None  # Move file_format here
 
 
 class Operation(BaseModel):
@@ -47,7 +46,6 @@ class Operation(BaseModel):
     @property
     def code(self) -> str | None:
         """Extract operation code using regex to find letters between dashes (e.g., -ABC-)."""
-
         # Use regex to find letters between dashes
         match = re.search(r"-([A-Z]+)-", self.reference)
         if match:
@@ -66,7 +64,7 @@ class Remise(BaseModel):
     date_echeance: datetime
     montant_total: float
     nb_operations: int
-    operations: List[Operation]
+    operations: list[Operation]
 
 
 def detect_encoding(file_path: Path) -> str:
@@ -90,13 +88,13 @@ def detect_encoding(file_path: Path) -> str:
         return "windows-1252"
 
 
-def load_csv_file(file_path: Path) -> Optional[pd.DataFrame]:
+def load_csv_file(file_path: Path) -> pd.DataFrame | None:
     """Load a CSV file with proper encoding detection and flexible parsing."""
     try:
         encoding = detect_encoding(file_path)
 
         # Read the file content to find the actual data section
-        with open(file_path, "r", encoding=encoding) as f:
+        with open(file_path, encoding=encoding) as f:
             lines = f.readlines()
 
         # Look for the header row (usually contains column names like "Débiteur", "Référence", etc.)
@@ -135,17 +133,13 @@ def load_csv_file(file_path: Path) -> Optional[pd.DataFrame]:
                     from io import StringIO
 
                     data_content = "".join(data_lines)
-                    df = pd.read_csv(
-                        StringIO(data_content), delimiter=delimiter, on_bad_lines="skip"
-                    )
+                    df = pd.read_csv(StringIO(data_content), delimiter=delimiter, on_bad_lines="skip")
 
                     # Check if we got meaningful data (more than just headers)
                     if len(df.columns) > 1 and len(df) > 0:
                         # Clean empty columns and rows
                         df = df.dropna(how="all")  # Remove completely empty rows
-                        df = df.loc[
-                            :, ~df.columns.str.contains("^Unnamed")
-                        ]  # Remove unnamed columns
+                        df = df.loc[:, ~df.columns.str.contains("^Unnamed")]  # Remove unnamed columns
                         if len(df) > 0:
                             return df
                 except Exception:
@@ -173,7 +167,7 @@ def load_csv_file(file_path: Path) -> Optional[pd.DataFrame]:
         return None
 
 
-def load_excel_file(file_path: Path) -> Optional[pd.DataFrame]:
+def load_excel_file(file_path: Path) -> pd.DataFrame | None:
     """Load the first sheet of an Excel file."""
     try:
         # Read the first sheet (index 0)
@@ -184,15 +178,11 @@ def load_excel_file(file_path: Path) -> Optional[pd.DataFrame]:
         return None
 
 
-def get_file_info(
-    file_path: Path, format_type: Optional[FileFormat] = None
-) -> FileInfo:
+def get_file_info(file_path: Path, format_type: FileFormat | None = None) -> FileInfo:
     """Get comprehensive file information including raw data."""
     file_size = file_path.stat().st_size
     file_size_mb = file_size / (1024 * 1024)
-    size_str = (
-        f"{file_size_mb:.2f} MB" if file_size_mb >= 0.01 else f"{file_size} bytes"
-    )
+    size_str = f"{file_size_mb:.2f} MB" if file_size_mb >= 0.01 else f"{file_size} bytes"
 
     encoding = None
     sheet_name = "Sheet1"  # Default for Excel files
@@ -204,7 +194,7 @@ def get_file_info(
         sheet_name = "CSV"
         # Read raw data for format detection
         try:
-            with open(file_path, "r", encoding=encoding) as f:
+            with open(file_path, encoding=encoding) as f:
                 raw_data = f.readlines()
         except Exception:
             pass
@@ -268,9 +258,7 @@ def detect_file_format(file_info: FileInfo) -> FileFormat:
         return FileFormat.PRELEVEMENTS
 
 
-def extract_date_from_metadata(
-    metadata: Dict[str, str], format_type: FileFormat
-) -> Optional[datetime]:
+def extract_date_from_metadata(metadata: dict[str, str], format_type: FileFormat) -> datetime | None:
     """Extract date from metadata based on file format using position-based approach."""
     # Look for date fields by checking if the key contains the relevant words (case-insensitive)
     for key, value in metadata.items():
@@ -324,7 +312,7 @@ def extract_date_from_metadata(
     return None
 
 
-def extract_export_date_from_metadata(metadata: Dict[str, str]) -> Optional[datetime]:
+def extract_export_date_from_metadata(metadata: dict[str, str]) -> datetime | None:
     """Extract export date from metadata using position-based approach."""
     # Look for export date fields by checking if the key contains "export"
     for key, value in metadata.items():
@@ -344,7 +332,7 @@ def extract_export_date_from_metadata(metadata: Dict[str, str]) -> Optional[date
     return None
 
 
-def extract_ref_from_metadata(metadata: Dict[str, str]) -> tuple:
+def extract_ref_from_metadata(metadata: dict[str, str]) -> tuple:
     """Extract reference and libelle from metadata using position-based approach."""
     # Look for REF field
     ref_line = metadata.get("REF", "").strip()
@@ -377,9 +365,7 @@ def extract_ref_from_metadata(metadata: Dict[str, str]) -> tuple:
     return ref, libelle
 
 
-def extract_operation_count_from_metadata(
-    metadata: Dict[str, str], format_type: FileFormat
-) -> int:
+def extract_operation_count_from_metadata(metadata: dict[str, str], format_type: FileFormat) -> int:
     """Extract operation count from metadata using position-based approach."""
     # Look for count fields by checking if the key contains relevant words
     for key, value in metadata.items():
@@ -393,9 +379,7 @@ def extract_operation_count_from_metadata(
                     return int(count_str)
         else:  # PRELEVEMENTS
             # Look for prélèvement count fields
-            if "nombre" in key_lower and (
-                "prelevement" in key_lower or "prelement" in key_lower
-            ):
+            if "nombre" in key_lower and ("prelevement" in key_lower or "prelement" in key_lower):
                 count_str = value.strip()
                 if count_str and count_str.isdigit():
                     return int(count_str)
@@ -426,19 +410,17 @@ def extract_operation_count_from_metadata(
     return 0
 
 
-def parse_remise_prelevements(file_info: FileInfo) -> Optional[Remise]:
+def parse_remise_prelevements(file_info: FileInfo) -> Remise | None:
     """Parse a CSV file in 'prélèvements' format."""
     return parse_remise_csv_with_format(file_info, FileFormat.PRELEVEMENTS)
 
 
-def parse_remise_virements(file_info: FileInfo) -> Optional[Remise]:
+def parse_remise_virements(file_info: FileInfo) -> Remise | None:
     """Parse a CSV file in 'virements' format."""
     return parse_remise_csv_with_format(file_info, FileFormat.VIREMENTS)
 
 
-def parse_remise_csv_with_format(
-    file_info: FileInfo, format_type: FileFormat
-) -> Optional[Remise]:
+def parse_remise_csv_with_format(file_info: FileInfo, format_type: FileFormat) -> Remise | None:
     """Parse a CSV file with a specific format."""
     try:
         if not file_info.raw_data:
@@ -477,9 +459,7 @@ def parse_remise_csv_with_format(
             line_lower = line.lower()
             if format_type == FileFormat.VIREMENTS:
                 # Look for virements table header (contains bénéficiaire and reference/paiement)
-                if "bénéficiaire" in line_lower and (
-                    "référence" in line_lower or "paiement" in line_lower
-                ):
+                if "bénéficiaire" in line_lower and ("référence" in line_lower or "paiement" in line_lower):
                     operations_start_idx = i
                     break
             else:  # PRELEVEMENTS
@@ -489,9 +469,7 @@ def parse_remise_csv_with_format(
                     break
 
         if operations_start_idx is None:
-            console.print(
-                f"[yellow]Warning: No operations found in {file_info.name}[/yellow]"
-            )
+            console.print(f"[yellow]Warning: No operations found in {file_info.name}[/yellow]")
             operations_start_idx = len(lines)  # No operations to parse
 
         # Parse operations
@@ -538,19 +516,11 @@ def parse_remise_csv_with_format(
             # Extract account info
             compte_line = metadata.get("COMPTE", "")
             compte_str = (
-                compte_line.split(";")[0].replace(" ", "")
-                if ";" in compte_line
-                else compte_line.replace(" ", "")
+                compte_line.split(";")[0].replace(" ", "") if ";" in compte_line else compte_line.replace(" ", "")
             )
-            compte = (
-                IBAN(compte_str) if compte_str else IBAN("FR7630004008280001330030876")
-            )  # fallback
+            compte = IBAN(compte_str) if compte_str else IBAN("FR7630004008280001330030876")  # fallback
 
-            type_info = (
-                compte_line.split(";TYPE : ")[-1]
-                if ";TYPE : " in compte_line
-                else "Prélèvement standard"
-            )
+            type_info = compte_line.split(";TYPE : ")[-1] if ";TYPE : " in compte_line else "Prélèvement standard"
 
             # Extract échéance/exécution date using format-aware function
             date_echeance = extract_date_from_metadata(metadata, format_type)
@@ -564,11 +534,7 @@ def parse_remise_csv_with_format(
             if not montant_str:
                 montant_str = metadata.get("Montant total :", "")  # Try with colon
             montant_str = montant_str.replace(",", ".").replace(" EUR", "").strip()
-            montant_total = (
-                float(montant_str)
-                if montant_str
-                else sum(op.montant for op in operations)
-            )
+            montant_total = float(montant_str) if montant_str else sum(op.montant for op in operations)
 
             # Extract number of operations using format-aware function
             nb_operations = extract_operation_count_from_metadata(metadata, format_type)
@@ -592,9 +558,7 @@ def parse_remise_csv_with_format(
             return remise
 
         except Exception as e:
-            console.print(
-                f"[red]Error parsing metadata from {file_info.name}: {e}[/red]"
-            )
+            console.print(f"[red]Error parsing metadata from {file_info.name}: {e}[/red]")
             return None
 
     except Exception as e:
@@ -602,14 +566,12 @@ def parse_remise_csv_with_format(
         return None
 
 
-def parse_remise_csv(file_path: Path) -> Optional[Remise]:
+def parse_remise_csv(file_path: Path) -> Remise | None:
     """Parse a CSV file into a Remise object with automatic format detection."""
     file_info = get_file_info(file_path)
     format_type = detect_file_format(file_info)
 
-    console.print(
-        f"[dim]Detected format: {format_type.value} for {file_info.name}[/dim]"
-    )
+    console.print(f"[dim]Detected format: {format_type.value} for {file_info.name}[/dim]")
 
     return parse_remise_csv_with_format(file_info, format_type)
 
@@ -622,7 +584,7 @@ def strip_filename_prefix(filename: str) -> str:
 
 
 def export_remises_to_excel(
-    remises: List[Remise],
+    remises: list[Remise],
     output_dir: Path,
     filename_prefix: str = "ops",
     timestamp: bool = True,
@@ -630,11 +592,10 @@ def export_remises_to_excel(
     monetary_format: str = "[$€-40C] #,##0.00",
     **kwargs,
 ) -> Path:
-    """
-    Export remises to Excel with professional formatting and total row, using XlsxWriter only.
-    """
-    import xlsxwriter
+    """Export remises to Excel with professional formatting and total row, using XlsxWriter only."""
     from datetime import datetime
+
+    import xlsxwriter
 
     # Generate filename
     if timestamp:
@@ -651,9 +612,7 @@ def export_remises_to_excel(
         for i, operation in enumerate(remise.operations):
             export_row = {
                 "File Name": strip_filename_prefix(remise.file_info.name),
-                "File Format": remise.file_info.file_format.value
-                if remise.file_info.file_format
-                else "Unknown",
+                "File Format": (remise.file_info.file_format.value if remise.file_info.file_format else "Unknown"),
                 "Date Export": remise.date_export.strftime("%d/%m/%Y"),
                 "Date Échéance": remise.date_echeance.strftime("%d/%m/%Y"),
                 "Référence Remise": remise.ref,
@@ -689,9 +648,9 @@ def export_remises_to_excel(
         worksheet.write_row(i, 0, row)
 
     # Set formats
-    money_fmt = workbook.add_format({'num_format': monetary_format})
-    date_fmt = workbook.add_format({'num_format': date_format})
-    int_fmt = workbook.add_format({'num_format': '0'})
+    money_fmt = workbook.add_format({"num_format": monetary_format})
+    date_fmt = workbook.add_format({"num_format": date_format})
+    int_fmt = workbook.add_format({"num_format": "0"})
 
     for col_idx, col_name in enumerate(columns):
         if col_name in ["Montant Total", "Op Montant"]:
@@ -713,13 +672,13 @@ def export_remises_to_excel(
     table_columns = []
     for col_name in columns:
         if col_name == "File Name":
-            table_columns.append({'header': col_name, 'total_string': 'Total'})
+            table_columns.append({"header": col_name, "total_string": "Total"})
         elif col_name == "File Format":
-            table_columns.append({'header': col_name, 'total_function': 'count'})
+            table_columns.append({"header": col_name, "total_function": "count"})
         elif col_name in ["Montant Total", "Op Montant"]:
-            table_columns.append({'header': col_name, 'total_function': 'sum'})
+            table_columns.append({"header": col_name, "total_function": "sum"})
         else:
-            table_columns.append({'header': col_name})
+            table_columns.append({"header": col_name})
 
     worksheet.add_table(
         table_first_row,
@@ -727,11 +686,11 @@ def export_remises_to_excel(
         table_last_row,
         table_last_col,
         {
-            'name': 'OPS',
-            'columns': table_columns,
-            'style': 'Table Style Medium 9',
-            'total_row': True,
-        }
+            "name": "OPS",
+            "columns": table_columns,
+            "style": "Table Style Medium 9",
+            "total_row": True,
+        },
     )
 
     workbook.close()

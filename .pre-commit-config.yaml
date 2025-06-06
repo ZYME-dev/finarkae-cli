@@ -1,0 +1,36 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: check-yaml
+        args: ["--unsafe"]
+      - id: check-toml
+  - repo: local
+    hooks:
+      - id: make-format
+        name: Format code (make format)
+        entry: make
+        args: [format]
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: make-lint
+        name: Lint code (make lint)
+        entry: make
+        args: [lint]
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: make-test
+        name: Run tests (make test)
+        entry: make
+        args: [test]
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: bump-version
+        name: Bump version (patch, semver)
+        entry: make
+        args: [bump]
+        language: system
+        pass_filenames: false

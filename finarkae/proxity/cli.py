@@ -1,21 +1,24 @@
 """Proxity module for Finarkae CLI."""
 
 from pathlib import Path
-from typing import List, Optional
 
 import typer
 from rich.table import Table
 
-from .compile_remise_flux_pass_ops import Remise, export_remises_to_excel, parse_remise_csv, strip_filename_prefix
 from . import console
-
-app = typer.Typer(
-    help="commandes relatives à proxity"
+from .compile_remise_flux_pass_ops import (
+    Remise,
+    export_remises_to_excel,
+    parse_remise_csv,
+    strip_filename_prefix,
 )
+
+app = typer.Typer(help="commandes relatives à proxity")
+
 
 @app.command("comp-remises-flux-pass")
 def compile_remise_flux_pass_ops(
-    directory: Optional[str] = typer.Option(
+    directory: str | None = typer.Option(
         None,
         "--dir",
         "-d",
@@ -29,7 +32,6 @@ def compile_remise_flux_pass_ops(
     ),
 ):
     """Compile les opérations de remise PASS à partir des fichier bancaires csv. Exporte les résultats dans un fichier excel. Travaille dans le répertoire courant par défaut."""
-
     # Use current directory if no directory specified
     search_dir = Path(directory) if directory else Path.cwd()
 
@@ -54,7 +56,7 @@ def compile_remise_flux_pass_ops(
         return
 
     # Parse all remises
-    remises: List[Remise] = []
+    remises: list[Remise] = []
     for file_path in csv_files:
         console.print(f"[dim]Processing: {file_path.name}[/dim]")
         remise = parse_remise_csv(file_path)
@@ -62,7 +64,7 @@ def compile_remise_flux_pass_ops(
             remises.append(remise)
 
     if not remises:
-        console.print(f"[yellow]No valid remises found[/yellow]")
+        console.print("[yellow]No valid remises found[/yellow]")
         return
 
     # Create and display operations table with grouped filenames
@@ -90,9 +92,7 @@ def compile_remise_flux_pass_ops(
             console.print(
                 f"[yellow]   Expected {expected_op_count} operations but found {actual_op_count} operation lines[/yellow]"
             )
-            console.print(
-                f"[yellow]   This might indicate a different file format or parsing issue[/yellow]"
-            )
+            console.print("[yellow]   This might indicate a different file format or parsing issue[/yellow]")
 
         for i, operation in enumerate(remise.operations):
             # Format status with green checkmark for "Accepté"
@@ -101,13 +101,9 @@ def compile_remise_flux_pass_ops(
                 status_display = "✅"
 
             # For table display: show filename only on first row of each file group
-            filename_display = (
-                strip_filename_prefix(remise.file_info.name) if i == 0 else ""
-            )
+            filename_display = strip_filename_prefix(remise.file_info.name) if i == 0 else ""
             export_display = remise.date_export.strftime("%d/%m/%Y") if i == 0 else ""
-            echeance_display = (
-                remise.date_echeance.strftime("%d/%m/%Y") if i == 0 else ""
-            )
+            echeance_display = remise.date_echeance.strftime("%d/%m/%Y") if i == 0 else ""
             montant_total_display = f"{remise.montant_total:.2f}" if i == 0 else ""
             nb_ops_display = str(remise.nb_operations) if i == 0 else ""
 
@@ -146,12 +142,8 @@ def compile_remise_flux_pass_ops(
         total_operations_exported = sum(len(remise.operations) for remise in remises)
 
         console.print(f"\n[green]✅ Exported to Excel table: {excel_path}[/green]")
-        console.print(
-            f"[green]   • Table name: 'OPS' with filters, alternating row colors, and total row[/green]"
-        )
-        console.print(
-            f"[green]   • {total_operations_exported} rows exported with all available fields[/green]"
-        )
+        console.print("[green]   • Table name: 'OPS' with filters, alternating row colors, and total row[/green]")
+        console.print(f"[green]   • {total_operations_exported} rows exported with all available fields[/green]")
 
     except Exception as e:
         console.print(f"[red]Error exporting to Excel: {e}[/red]")
@@ -159,19 +151,15 @@ def compile_remise_flux_pass_ops(
     # Summary statistics
     total_operations = sum(len(remise.operations) for remise in remises)
     total_amount = sum(remise.montant_total for remise in remises)
-    accepted_operations = sum(
-        1 for remise in remises for op in remise.operations if op.statut == "Accepté"
-    )
+    accepted_operations = sum(1 for remise in remises for op in remise.operations if op.statut == "Accepté")
 
-    console.print(f"\n[green]Summary:[/green]")
+    console.print("\n[green]Summary:[/green]")
     console.print(f"  • Total remises: {len(remises)}")
     console.print(f"  • Total operations: {total_operations}")
     console.print(f"  • Accepted operations: {accepted_operations}")
     console.print(f"  • Total amount: {total_amount:.2f} EUR")
 
     if verbose:
-        console.print(f"\n[cyan]Remises details:[/cyan]")
+        console.print("\n[cyan]Remises details:[/cyan]")
         for remise in remises:
-            console.print(
-                f"  • {remise.file_info.name}: {len(remise.operations)} ops, {remise.montant_total:.2f} EUR"
-            )
+            console.print(f"  • {remise.file_info.name}: {len(remise.operations)} ops, {remise.montant_total:.2f} EUR")

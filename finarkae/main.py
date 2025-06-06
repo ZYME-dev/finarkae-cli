@@ -19,6 +19,7 @@ def version_callback(value: bool):
     """Print version and exit."""
     if value:
         from finarkae import __version__
+
         console.print(f"finarkae-cli version: {__version__}")
         raise typer.Exit()
 
@@ -39,4 +40,4 @@ def main(
 
 
 if __name__ == "__main__":
-    app() 
+    app()

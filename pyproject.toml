@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "finarkae-cli"
-version = "0.1.0"
+version = "0.1.21"
 description = "CLI tools for finarkae"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 dependencies = [
     "typer",
     "rich",
@@ -32,4 +32,45 @@ dev-dependencies = [
     "pytest-cov",
     "mypy",
     "ruff",
-] 
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+include = [
+    "finarkae/**/*.py",
+    "tests/**/*.py",
+]
+
+[tool.ruff.lint]
+extend-select = [
+    "Q",
+    "RUF100",
+    "RUF018", # https://docs.astral.sh/ruff/rules/assignment-in-assert/
+    "C90",
+    "UP",
+    "I",
+    "D",
+    "TID251",
+]
+flake8-quotes = { inline-quotes = "double", multiline-quotes = "double" }
+isort = { combine-as-imports = true, known-first-party = ["app"] }
+mccabe = { max-complexity = 15 }
+ignore = [
+    "D100", # ignore missing docstring in module
+    "D101", # ignore missing docstring in public class
+    "D102", # ignore missing docstring in public method
+    "D103", # ignore missing docstring in public class
+    "D104", # ignore missing docstring in public package
+    "D105", # ignore missing docstring in magic methods
+    "D107", # ignore missing docstring in __init__ methods
+    "C901", # ignore complex function
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+# don't format python in docstrings, pytest-examples takes care of it
+docstring-code-format = false
+quote-style = "double"
