@@ -1,56 +1,78 @@
 # finarkae-cli
 
-CLI tools for finarkae, installable from the repo through uvx.
+CLI tools for finarkae - A collection of tools for financial data processing. Made by ZYME with great 💚.
 
-## Installation
+---
+
+## 👤 For Users
 
 ### Prerequisites
 
-First, you need to install `uv` (the Python package manager). Choose your preferred method:
+You need to install `uv` (the Python package manager) first. Choose your preferred method:
 
-**Via Homebrew (macOS):**
+**macOS (via Homebrew):**
+
+First, install Homebrew if you don't have it:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then install uv:
 ```bash
 brew install uv
 ```
 
-**Via curl (Linux/macOS):**
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-**Via PowerShell (Windows):**
+**Windows (via PowerShell):**
 ```powershell
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-For more installation options, visit: https://docs.astral.sh/uv/getting-started/installation/
+**Linux/macOS (via curl):**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+> For more installation options, visit: https://docs.astral.sh/uv/getting-started/installation/
 
 ### Install finarkae-cli
 
-Once `uv` is installed, you can install `finarkae-cli` directly from this GitHub repository:
+Once `uv` is installed, install `finarkae-cli` directly from GitHub:
 
 ```bash
-uvx install git+https://github.com/zyme-dev/finarkae-cli.git
+uv tool install git+https://github.com/zyme-dev/finarkae-cli.git
 ```
 
 This will make the `finarkae` command globally available in your terminal.
 
-## Usage
+### Usage
 
-The CLI is organized into submodules. Currently available:
+The CLI is organized into modules. Currently available:
 
-### Proxity Module
+#### Getting Help
 
-#### compile-ops
+```bash
+# General help
+finarkae --help
+
+# Help for proxity module
+finarkae proxity --help
+
+# Show version
+finarkae --version
+```
+
+#### Proxity Module
+
+##### compile-ops
 
 Read all CSV and XLS/XLSX files from a directory and display them in a formatted table.
 
 **Features:**
-- Supports both CSV and Excel files (.csv, .xls, .xlsx)
-- Intelligent CSV parsing with French encoding support
-- Handles complex CSV structures with metadata headers
-- Displays file information including row/column counts
-- Verbose mode with encoding details
+* Supports both CSV and Excel files (.csv, .xls, .xlsx)
+* Intelligent CSV parsing with French encoding support
+* Handles complex CSV structures with metadata headers
+* Displays file information including row/column counts
+* Verbose mode with encoding details
 
 **Usage:**
 ```bash
@@ -84,33 +106,79 @@ Summary:
   • Total rows: 355
 ```
 
-## Getting Help
+### Updating
+
+To update to the latest version:
 
 ```bash
-# General help
-finarkae --help
-
-# Help for proxity module
-finarkae proxity --help
-
-# Help for specific command
-finarkae proxity compile-ops --help
-
-# Show version
-finarkae --version
+uv tool install git+https://github.com/zyme-dev/finarkae-cli.git --force
 ```
 
-## Development
+### Uninstalling
 
-To contribute to this project:
+#### Remove finarkae-cli
 
-1. Clone the repository
-2. Install dependencies: `uv sync`
-3. Run in development mode: `uv run finarkae`
+To remove just the finarkae-cli tool:
 
-### Testing
+```bash
+uv tool uninstall finarkae_cli
+```
 
-The project includes comprehensive unit tests:
+#### Complete Removal (Optional)
+
+If you no longer need `uv` and want to remove it completely:
+
+**macOS (if installed via Homebrew):**
+```bash
+brew uninstall uv
+```
+
+**Linux/macOS (if installed via curl):**
+```bash
+# Remove uv binary
+rm -rf ~/.cargo/bin/uv
+# Remove uv cache and data
+rm -rf ~/.cache/uv
+rm -rf ~/.local/share/uv
+```
+
+**Windows (if installed via PowerShell):**
+```powershell
+# Remove uv from your PATH and delete the installation directory
+# Location is typically in your user profile under .cargo\bin\
+```
+
+> **Note**: Only remove `uv` if you're not using it for other Python projects. If you're unsure, just uninstall finarkae-cli and keep `uv` installed.
+
+---
+
+## 🛠️ For Developers
+
+### Development Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/zyme-dev/finarkae-cli.git
+   cd finarkae-cli
+   ```
+
+2. **Install development dependencies:**
+   ```bash
+   make install
+   ```
+   This will:
+   - Install all dependencies with `uv sync`
+   - Set up pre-commit hooks
+   - Prepare the development environment
+
+3. **Install in development mode:**
+   ```bash
+   uv tool install --editable .
+   ```
+
+### Development Workflow
+
+#### Testing
 
 ```bash
 # Run all tests
@@ -126,7 +194,30 @@ make test-cov
 make sample-test
 ```
 
-### Available Make Commands
+#### Code Quality
+
+```bash
+# Format code
+make format
+
+# Run linting checks
+make lint
+```
+
+#### Version Management
+
+```bash
+# Bump patch version (e.g., 0.1.0 → 0.1.1)
+make bump-patch
+
+# Bump minor version (e.g., 0.1.0 → 0.2.0)
+make bump-minor
+
+# Bump major version (e.g., 0.1.0 → 1.0.0)
+make bump-major
+```
+
+#### Available Make Commands
 
 ```bash
 make help          # Show all available commands
@@ -135,10 +226,44 @@ make dev           # Install development dependencies
 make lint          # Run linting checks
 make format        # Format code
 make clean         # Clean build artifacts
+make test          # Run unit tests
+make test-verbose  # Run tests with verbose output
+make test-cov      # Run tests with coverage report
+make sample-test   # Test on sample data
 ```
+
+### Project Structure
+
+```
+finarkae-cli/
+├── finarkae/           # Main package
+│   ├── __init__.py
+│   ├── main.py         # CLI entry point
+│   ├── _version.py     # Version management
+│   └── proxity/        # Proxity module
+├── tests/              # Unit tests
+├── pyproject.toml      # Project configuration
+├── Makefile           # Development commands
+├── VERSION            # Version number
+└── README.md          # This file
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes
+4. Run tests: `make test`
+5. Commit your changes: `git commit -m "Description"`
+6. Push to your fork: `git push origin feature-name`
+7. Create a Pull Request
+
+### Development Requirements
+
+- Python ≥ 3.12
+- `uv` package manager
+- Make (for development commands)
 
 ## License
 
 This project is licensed under the MIT License.
-# Testing the new VERSION file approach
-# Testing fixed version bump logic
