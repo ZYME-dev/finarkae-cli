@@ -30,6 +30,7 @@ repos:
         always_run: true
       - id: auto-bump-patch
         name: Auto bump patch
-        entry: make bump-patch
+        entry: scripts/auto-bump.sh
         language: system
         pass_filenames: false
+        always_run: true
